@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#5b21b6" />
+<title>Wallet Recharge</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+  :root{
+    --grad-1:#7c3aed;
+    --grad-2:#a855f7;
+    --grad-3:#5b21b6;
+    --surface:#ffffff;
+    --surface2:#f7f5fb;
+    --border:#ece8f5;
+    --text:#1a1530;
+    --text2:#6b6480;
+    --text3:#a39cb8;
+    --success:#10b981;
+    --danger:#ef4444;
+    --radius:18px;
+    --radius-sm:10px;
+    --shadow-sm:0 4px 16px rgba(91,33,182,0.08);
+    --shadow-md:0 12px 36px rgba(91,33,182,0.14);
+    --font-display:'Syne',sans-serif;
+    --font-body:'DM Sans',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-tap-highlight-color:transparent;}
+  body{
+    font-family:var(--font-body);
+    background:linear-gradient(135deg,var(--grad-1) 0%, var(--grad-2) 45%, var(--grad-3) 100%);
+    min-height:100vh;
+    color:var(--text);
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:32px 16px 60px;
+  }
+  button{font-family:var(--font-body);cursor:pointer;border:none;background:none;}
+  input{font-family:var(--font-mono);}
+
+  .wrap{ width:100%; max-width:440px; }
+
+  /* ── Header ── */
+  .hero{
+    text-align:center;
+    color:#fff;
+    padding:18px 8px 28px;
+  }
+  .hero-icon{
+    width:64px;height:64px;
+    margin:0 auto 14px;
+    border-radius:20px;
+    background:rgba(255,255,255,0.16);
+    border:1px solid rgba(255,255,255,0.25);
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;
+    backdrop-filter:blur(6px);
+  }
+  .hero h1{
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:24px;
+    letter-spacing:-0.3px;
+    margin-bottom:6px;
+  }
+  .hero p{
+    font-size:13px;
+    color:rgba(255,255,255,0.78);
+    line-height:1.5;
+  }
+
+  /* ── Card shell ── */
+  .card{
+    background:var(--surface);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-md);
+    padding:24px;
+    margin-bottom:16px;
+  }
+
+  /* ── Step 1: Wallet ID entry ── */
+  .field-label{
+    font-size:12px;
+    font-weight:700;
+    color:var(--text2);
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    margin-bottom:8px;
+    display:block;
+  }
+  .input-row{
+    display:flex;
+    gap:10px;
+  }
+  .wid-input{
+    flex:1;
+    height:52px;
+    border:1.5px solid var(--border);
+    border-radius:var(--radius-sm);
+    padding:0 16px;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:0.5px;
+    color:var(--text);
+    background:var(--surface2);
+    transition:border-color .15s, box-shadow .15s;
+    outline:none;
+  }
+  .wid-input:focus{
+    border-color:var(--grad-1);
+    box-shadow:0 0 0 3px rgba(124,58,237,0.12);
+    background:#fff;
+  }
+  .wid-input::placeholder{ color:var(--text3); font-weight:500; letter-spacing:0.2px; }
+
+  .lookup-btn{
+    width:56px;height:52px;
+    border-radius:var(--radius-sm);
+    background:linear-gradient(135deg,var(--grad-1),var(--grad-3));
+    color:#fff;
+    font-size:18px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 18px rgba(124,58,237,0.28);
+    transition:transform .15s, box-shadow .15s;
+    flex-shrink:0;
+  }
+  .lookup-btn:active{ transform:scale(0.94); }
+  .lookup-btn:disabled{ opacity:0.55; box-shadow:none; }
+
+  .hint{
+    font-size:11.5px;
+    color:var(--text3);
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .hint i{ color:var(--grad-1); font-size:11px; }
+
+  /* ── Loading state ── */
+  .loading-row{
+    display:none;
+    align-items:center;
+    gap:10px;
+    margin-top:16px;
+    font-size:13px;
+    color:var(--text2);
+    font-weight:600;
+  }
+  .loading-row.show{ display:flex; }
+  .spinner{
+    width:18px;height:18px;
+    border:2.5px solid var(--border);
+    border-top-color:var(--grad-1);
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* ── Error state ── */
+  .err-box{
+    display:none;
+    margin-top:16px;
+    padding:14px 16px;
+    border-radius:var(--radius-sm);
+    background:#fef2f2;
+    border:1px solid #fecaca;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .err-box.show{ display:flex; animation:shakeIn .35s; }
+  @keyframes shakeIn{
+    0%{ transform:translateX(0); opacity:0; }
+    25%{ transform:translateX(-6px); }
+    50%{ transform:translateX(6px); }
+    75%{ transform:translateX(-3px); }
+    100%{ transform:translateX(0); opacity:1; }
+  }
+  .err-box i{ color:var(--danger); font-size:16px; margin-top:1px; }
+  .err-box .et{ font-size:12.5px; font-weight:700; color:#b91c1c; margin-bottom:2px; }
+  .err-box .em{ font-size:12px; color:#dc2626; line-height:1.5; }
+
+  /* ── Step 2: User detail card (glassmorphism) ── */
+  .detail-card{
+    display:none;
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:var(--shadow-md);
+    margin-bottom:16px;
+    animation:cardIn .4s cubic-bezier(.25,.9,.35,1.2) both;
+  }
+  .detail-card.show{ display:block; }
+  @keyframes cardIn{
+    0%{ opacity:0; transform:translateY(18px) scale(.97); }
+    100%{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  .dc-header{
+    position:relative;
+    background:linear-gradient(135deg,var(--grad-1) 0%, var(--grad-2) 50%, var(--grad-3) 100%);
+    color:#fff;
+    padding:22px 22px 20px;
+    overflow:hidden;
+  }
+  .dc-header::before{
+    content:'';
+    position:absolute;
+    right:-30px; top:-30px;
+    width:120px;height:120px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.10);
+  }
+  .dc-header::after{
+    content:'';
+    position:absolute;
+    left:-20px; bottom:-40px;
+    width:100px;height:100px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.07);
+  }
+  .dc-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(255,255,255,0.18);
+    border:1px solid rgba(255,255,255,0.28);
+    border-radius:100px;
+    padding:5px 12px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+    margin-bottom:14px;
+    position:relative;
+    z-index:1;
+  }
+  .dc-badge i{ font-size:9px; color:#86efac; }
+  .dc-biz{
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:21px;
+    letter-spacing:-0.3px;
+    margin-bottom:4px;
+    position:relative; z-index:1;
+    word-break:break-word;
+  }
+  .dc-name{
+    font-size:13px;
+    color:rgba(255,255,255,0.82);
+    position:relative; z-index:1;
+  }
+
+  .dc-balance-row{
+    background:var(--surface);
+    padding:18px 22px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    border-bottom:1px solid var(--border);
+  }
+  .dc-bal-label{
+    font-size:11px;
+    font-weight:700;
+    color:var(--text3);
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    margin-bottom:4px;
+  }
+  .dc-bal-amount{
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:30px;
+    color:var(--text);
+    letter-spacing:-0.5px;
+  }
+  .dc-bal-amount .cur{ font-size:18px; color:var(--text2); font-weight:700; margin-right:2px; }
+  .dc-bal-icon{
+    width:46px;height:46px;
+    border-radius:14px;
+    background:linear-gradient(135deg,#ecfdf5,#d1fae5);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;
+    color:var(--success);
+  }
+
+  .dc-wid-row{
+    background:var(--surface2);
+    padding:14px 22px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .dc-wid-left{ flex:1; min-width:0; }
+  .dc-wid-label{
+    font-size:10.5px;
+    font-weight:700;
+    color:var(--text3);
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    margin-bottom:4px;
+  }
+  .dc-wid-value{
+    font-family:var(--font-mono);
+    font-size:14px;
+    font-weight:700;
+    color:var(--text);
+    letter-spacing:0.5px;
+    word-break:break-all;
+  }
+  .dc-copy-btn{
+    flex-shrink:0;
+    display:flex;align-items:center;gap:6px;
+    background:#fff;
+    border:1.5px solid var(--border);
+    border-radius:100px;
+    padding:9px 14px;
+    font-size:12px;
+    font-weight:700;
+    color:var(--grad-1);
+    transition:all .15s;
+  }
+  .dc-copy-btn:active{ transform:scale(0.94); }
+  .dc-copy-btn.copied{
+    background:#ecfdf5;
+    border-color:#a7f3d0;
+    color:var(--success);
+  }
+  .dc-copy-btn i{ font-size:12px; }
+
+  /* ── Recharge CTA section ── */
+  .recharge-card{
+    display:none;
+    background:var(--surface);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-sm);
+    padding:22px;
+    text-align:center;
+    animation:cardIn .45s cubic-bezier(.25,.9,.35,1.2) both;
+    animation-delay:.08s;
+  }
+  .recharge-card.show{ display:block; }
+  .recharge-title{
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:17px;
+    margin-bottom:6px;
+  }
+  .recharge-sub{
+    font-size:12.5px;
+    color:var(--text2);
+    margin-bottom:18px;
+    line-height:1.5;
+  }
+  .method-pills{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .method-pill{
+    display:flex;align-items:center;gap:6px;
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:100px;
+    padding:6px 12px;
+    font-size:11px;
+    font-weight:600;
+    color:var(--text2);
+  }
+  .method-pill i{ font-size:10px; color:var(--grad-1); }
+
+  /* Razorpay button container */
+  .rzp-btn-wrap{
+    min-height:52px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  .rzp-btn-wrap form{ width:100%; }
+  .rzp-btn-wrap form iframe{
+    width:100% !important;
+    border-radius:var(--radius-sm) !important;
+    min-height:48px !important;
+  }
+  .rzp-loading{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    padding:14px 0;
+    width:100%;
+  }
+  .rzp-loading .spinner{ width:22px;height:22px; }
+  .rzp-loading span{ font-size:12px; color:var(--text2); font-weight:600; }
+
+  .secure-note{
+    margin-top:16px;
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    font-size:11px;
+    color:var(--text3);
+    line-height:1.5;
+    text-align:left;
+  }
+  .secure-note i{ color:var(--grad-1); font-size:14px; margin-top:1px; flex-shrink:0; }
+
+  /* ── New search ── */
+  .search-again{
+    display:none;
+    text-align:center;
+    margin-top:4px;
+  }
+  .search-again.show{ display:block; }
+  .search-again button{
+    font-size:12.5px;
+    font-weight:700;
+    color:rgba(255,255,255,0.9);
+    padding:10px 18px;
+    border-radius:100px;
+    background:rgba(255,255,255,0.14);
+    border:1px solid rgba(255,255,255,0.25);
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    transition:background .15s;
+  }
+  .search-again button:active{ background:rgba(255,255,255,0.24); }
+
+  /* ── Toast ── */
+  .toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:#1a1530;
+    color:#fff;
+    padding:12px 20px;
+    border-radius:100px;
+    font-size:13px;
+    font-weight:600;
+    display:flex;align-items:center;gap:8px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.25);
+    opacity:0;
+    pointer-events:none;
+    transition:all .3s cubic-bezier(.4,0,.2,1);
+    z-index:999;
+    white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast i{ color:var(--success); }
+
+  /* ── Success overlay ── */
+  .success-overlay{
+    position:fixed; inset:0;
+    background:rgba(26,21,48,0.55);
+    backdrop-filter:blur(4px);
+    display:flex;align-items:center;justify-content:center;
+    z-index:1000;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s;
+    padding:20px;
+  }
+  .success-overlay.show{ opacity:1; pointer-events:auto; }
+  .success-card{
+    background:#fff;
+    border-radius:22px;
+    padding:36px 28px;
+    text-align:center;
+    max-width:320px;
+    transform:scale(.85);
+    transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+    box-shadow:0 20px 60px rgba(0,0,0,0.25);
+  }
+  .success-overlay.show .success-card{ transform:scale(1); }
+  .success-icon{
+    width:72px;height:72px;
+    margin:0 auto 16px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#ecfdf5,#d1fae5);
+    display:flex;align-items:center;justify-content:center;
+    font-size:32px;
+    color:var(--success);
+    animation:pop .5s cubic-bezier(.34,1.56,.64,1) .1s both;
+  }
+  @keyframes pop{
+    0%{ transform:scale(0); }
+    60%{ transform:scale(1.15); }
+    100%{ transform:scale(1); }
+  }
+  .success-card h3{
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:18px;
+    margin-bottom:8px;
+  }
+  .success-card p{
+    font-size:13px;
+    color:var(--text2);
+    line-height:1.55;
+    margin-bottom:18px;
+  }
+  .success-card button{
+    width:100%;
+    height:46px;
+    border-radius:var(--radius-sm);
+    background:linear-gradient(135deg,var(--grad-1),var(--grad-3));
+    color:#fff;
+    font-weight:700;
+    font-size:13.5px;
+  }
+
+  .footer-note{
+    text-align:center;
+    margin-top:24px;
+    font-size:11px;
+    color:rgba(255,255,255,0.55);
+    line-height:1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ── Hero ── -->
+  <div class="hero">
+    <div class="hero-icon"><i class="fas fa-wallet"></i></div>
+    <h1>Wallet Recharge</h1>
+    <p>Enter your Wallet ID to view your balance<br/>and add money instantly.</p>
+  </div>
+
+  <!-- ── Step 1: Wallet ID input ── -->
+  <div class="card" id="lookupCard">
+    <label class="field-label" for="walletIdInput">Your Wallet ID</label>
+    <div class="input-row">
+      <input
+        type="text"
+        id="walletIdInput"
+        class="wid-input"
+        placeholder="e.g. 9876543210WAL"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        maxlength="40"
+        inputmode="text"
+      />
+      <button class="lookup-btn" id="lookupBtn" onclick="lookupWallet()" aria-label="Find wallet">
+        <i class="fas fa-arrow-right" id="lookupBtnIcon"></i>
+      </button>
+    </div>
+    <div class="hint"><i class="fas fa-info-circle"></i> Find your Wallet ID in your account profile</div>
+
+    <div class="loading-row" id="loadingRow">
+      <div class="spinner"></div>
+      <span>Looking up your wallet…</span>
+    </div>
+
+    <div class="err-box" id="errBox">
+      <i class="fas fa-exclamation-circle"></i>
+      <div>
+        <div class="et" id="errTitle">Wallet not found</div>
+        <div class="em" id="errMsg">Please double-check your Wallet ID and try again.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Step 2: Wallet details card ── -->
+  <div class="detail-card" id="detailCard">
+    <div class="dc-header">
+      <div class="dc-badge"><i class="fas fa-circle"></i> Account verified</div>
+      <div class="dc-biz" id="dcBusiness">—</div>
+      <div class="dc-name" id="dcName">—</div>
+    </div>
+    <div class="dc-balance-row">
+      <div>
+        <div class="dc-bal-label">Current Balance</div>
+        <div class="dc-bal-amount"><span class="cur">₹</span><span id="dcBalance">0.00</span></div>
+      </div>
+      <div class="dc-bal-icon"><i class="fas fa-wallet"></i></div>
+    </div>
+    <div class="dc-wid-row">
+      <div class="dc-wid-left">
+        <div class="dc-wid-label">Wallet ID</div>
+        <div class="dc-wid-value" id="dcWalletId">—</div>
+      </div>
+      <button class="dc-copy-btn" id="dcCopyBtn" onclick="copyWalletId()">
+        <i class="fas fa-clipboard" id="dcCopyIcon"></i>
+        <span id="dcCopyText">Copy</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Step 3: Recharge / Razorpay button ── -->
+  <div class="recharge-card" id="rechargeCard">
+    <div class="recharge-title">Recharge this Wallet</div>
+    <div class="recharge-sub">Money will be added to the wallet shown above. Payment is processed securely by Razorpay.</div>
+    <div class="method-pills">
+      <div class="method-pill"><i class="fas fa-mobile-alt"></i> UPI</div>
+      <div class="method-pill"><i class="fas fa-credit-card"></i> Cards</div>
+      <div class="method-pill"><i class="fas fa-university"></i> Net Banking</div>
+      <div class="method-pill"><i class="fas fa-wallet"></i> Wallets</div>
+    </div>
+    <div class="rzp-btn-wrap" id="rzpBtnWrap">
+      <div class="rzp-loading" id="rzpLoading">
+        <div class="spinner"></div>
+        <span>Loading payment gateway…</span>
+      </div>
+    </div>
+    <div class="secure-note">
+      <i class="fas fa-shield-alt"></i>
+      <span>Your payment is protected by 256-bit SSL encryption via Razorpay. We never store your card details.</span>
+    </div>
+  </div>
+
+  <!-- ── Search again ── -->
+  <div class="search-again" id="searchAgain">
+    <button onclick="resetSearch()"><i class="fas fa-redo"></i> Search another Wallet ID</button>
+  </div>
+
+  <div class="footer-note">
+    Powered by Razorpay · PCI-DSS Compliant<br/>
+    Having trouble? Contact support from your account.
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastText">Copied!</span></div>
+
+<!-- ── Success overlay (after returning from payment, optional) ── -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <div class="success-icon"><i class="fas fa-check"></i></div>
+    <h3>Payment Successful</h3>
+    <p>Your wallet recharge has been received. The balance will reflect shortly.</p>
+    <button onclick="closeSuccess()">Done</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG — REPLACE WITH YOUR DEPLOYED APPS SCRIPT WEB APP URL
+   ═══════════════════════════════════════════════════════════════ */
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+
+/* Razorpay Payment Button ID — same as your existing working button */
+var RZP_PAYMENT_BUTTON_ID = 'pl_Sv3ShkM8KtMr6B';
+
+var _rzpInjected = false;
+var _currentWalletId = '';
+
+/* ── Enter key triggers lookup ── */
+document.getElementById('walletIdInput').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') lookupWallet();
+});
+
+/* ── Main lookup function ── */
+function lookupWallet() {
+  var input = document.getElementById('walletIdInput');
+  var wid = (input.value || '').trim();
+
+  hideError();
+
+  if (!wid) {
+    showError('Wallet ID required', 'Please enter your Wallet ID to continue.');
+    input.focus();
+    return;
+  }
+  if (wid.length < 4) {
+    showError('Invalid Wallet ID', 'Wallet ID looks too short. Please check and try again.');
+    return;
+  }
+
+  setLoading(true);
+  hideDetailCard();
+  hideRechargeCard();
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'getWalletRechargeDetails', walletId: wid })
+  })
+  .then(function(res){
+    if (!res.ok) throw new Error('network');
+    return res.json();
+  })
+  .then(function(resp){
+    setLoading(false);
+    if (resp && resp.success) {
+      renderWalletDetails(resp.data);
+    } else {
+      var msg = (resp && resp.message) ? resp.message : 'Wallet ID not found. Please check and try again.';
+      showError('Wallet not found', msg);
+    }
+  })
+  .catch(function(){
+    setLoading(false);
+    showError('Connection error', 'Could not reach the server. Please check your internet connection and try again.');
+  });
+}
+
+function setLoading(on) {
+  var row = document.getElementById('loadingRow');
+  var btn = document.getElementById('lookupBtn');
+  var icon = document.getElementById('lookupBtnIcon');
+  if (on) {
+    row.classList.add('show');
+    btn.disabled = true;
+    icon.className = 'fas fa-circle-notch fa-spin';
+  } else {
+    row.classList.remove('show');
+    btn.disabled = false;
+    icon.className = 'fas fa-arrow-right';
+  }
+}
+
+function showError(title, msg) {
+  document.getElementById('errTitle').textContent = title;
+  document.getElementById('errMsg').textContent = msg;
+  document.getElementById('errBox').classList.add('show');
+}
+function hideError() {
+  document.getElementById('errBox').classList.remove('show');
+}
+
+/* ── Render the wallet details card + show recharge section ── */
+function renderWalletDetails(data) {
+  _currentWalletId = data.wallet_id || '';
+
+  document.getElementById('dcBusiness').textContent = data.business_name || 'Unnamed Business';
+  document.getElementById('dcName').textContent = data.name || '';
+  document.getElementById('dcWalletId').textContent = data.wallet_id || '—';
+
+  var bal = parseFloat(data.wallet_balance) || 0;
+  document.getElementById('dcBalance').textContent = bal.toLocaleString('en-IN', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  });
+
+  document.getElementById('detailCard').classList.add('show');
+  document.getElementById('rechargeCard').classList.add('show');
+  document.getElementById('searchAgain').classList.add('show');
+  document.getElementById('lookupCard').style.display = 'none';
+
+  /* Inject Razorpay button (only once) */
+  requestAnimationFrame(injectRzpButton);
+
+  /* Scroll into view smoothly */
+  setTimeout(function(){
+    document.getElementById('detailCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 150);
+}
+
+function hideDetailCard() {
+  document.getElementById('detailCard').classList.remove('show');
+}
+function hideRechargeCard() {
+  document.getElementById('rechargeCard').classList.remove('show');
+  document.getElementById('searchAgain').classList.remove('show');
+}
+
+/* ── Inject the EXISTING Razorpay Payment Button — unchanged ── */
+function injectRzpButton() {
+  if (_rzpInjected) return;
+  var wrap = document.getElementById('rzpBtnWrap');
+  if (!wrap) return;
+
+  var form = document.createElement('form');
+  var script = document.createElement('script');
+  script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
+  script.setAttribute('data-payment_button_id', RZP_PAYMENT_BUTTON_ID);
+  script.async = true;
+
+  script.onload = function() {
+    var loading = document.getElementById('rzpLoading');
+    if (loading) loading.style.display = 'none';
+  };
+  script.onerror = function() {
+    var loading = document.getElementById('rzpLoading');
+    if (loading) {
+      loading.innerHTML =
+        '<div style="text-align:center;padding:8px 0;">' +
+        '<i class="fas fa-exclamation-circle" style="color:#ef4444;font-size:20px;display:block;margin-bottom:6px;"></i>' +
+        '<div style="font-size:12px;color:#ef4444;font-weight:700;">Could not load payment button.</div>' +
+        '<div style="font-size:11px;color:#a39cb8;margin-top:4px;">Please check your connection and try again.</div>' +
+        '</div>';
+    }
+  };
+
+  form.appendChild(script);
+  wrap.appendChild(form);
+  _rzpInjected = true;
+}
+
+/* ── Copy Wallet ID ── */
+function copyWalletId() {
+  if (!_currentWalletId) return;
+  var onSuccess = function() {
+    var btn = document.getElementById('dcCopyBtn');
+    var icon = document.getElementById('dcCopyIcon');
+    var txt = document.getElementById('dcCopyText');
+    btn.classList.add('copied');
+    icon.className = 'fas fa-check';
+    txt.textContent = 'Copied';
+    showToast('Wallet ID copied to clipboard');
+    setTimeout(function(){
+      btn.classList.remove('copied');
+      icon.className = 'fas fa-clipboard';
+      txt.textContent = 'Copy';
+    }, 2000);
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(_currentWalletId).then(onSuccess).catch(function(){
+      fallbackCopy(_currentWalletId, onSuccess);
+    });
+  } else {
+    fallbackCopy(_currentWalletId, onSuccess);
+  }
+}
+
+function fallbackCopy(text, cb) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+/* ── Toast ── */
+function showToast(msg) {
+  var toast = document.getElementById('toast');
+  document.getElementById('toastText').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(function(){ toast.classList.remove('show'); }, 2200);
+}
+
+/* ── Reset to search again ── */
+function resetSearch() {
+  document.getElementById('lookupCard').style.display = 'block';
+  document.getElementById('walletIdInput').value = '';
+  hideDetailCard();
+  hideRechargeCard();
+  hideError();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(function(){ document.getElementById('walletIdInput').focus(); }, 300);
+}
+
+/* ── Success overlay (optional — wire to your payment callback) ── */
+function showSuccess() {
+  document.getElementById('successOverlay').classList.add('show');
+}
+function closeSuccess() {
+  document.getElementById('successOverlay').classList.remove('show');
+}
+</script>
+
+</body>
+</html>
